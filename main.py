@@ -95,6 +95,28 @@ def save_to_history(lat, lon, num_astronauts):
         writer.writerow([datetime.now().strftime("%Y-%m-%d %H:%M"), lat, lon, num_astronauts])
 
 
+def show_orbit_track():
+    """Draw a simple ASCII chart of the last 7 saved ISS latitudes."""
+    if not os.path.isfile(HISTORY_FILE):
+        return
+
+    with open(HISTORY_FILE, "r") as f:
+        rows = list(csv.reader(f))[1:]
+
+    last_rows = rows[-7:]
+    if not last_rows:
+        return
+
+    print(Fore.CYAN + "Recent Orbit Track (latitude):")
+    for date, lat, lon, num in last_rows:
+        lat = float(lat)
+        direction = "N" if lat >= 0 else "S"
+        bar_length = int(abs(lat) / 2)
+        bar = "#" * bar_length
+        print(f"{date[:10]}  {bar} {abs(lat):.1f}°{direction}")
+    print()
+
+
 def main():
     if not NASA_API_KEY:
         print(Fore.RED + "No API key found! Add NASA_API_KEY to your .env file.")
@@ -111,6 +133,7 @@ def main():
     display_apod(apod_data)
     display_iss(lat, lon, num_astronauts)
     save_to_history(lat, lon, num_astronauts)
+    show_orbit_track()
 
 
 if __name__ == "__main__":
