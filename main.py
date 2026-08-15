@@ -4,6 +4,9 @@ A terminal dashboard showing NASA's photo of the day and the ISS's live location
 """
 
 import os
+import csv
+from datetime import datetime
+
 import requests
 from dotenv import load_dotenv
 from colorama import init, Fore, Style
@@ -12,6 +15,8 @@ init(autoreset=True)
 
 load_dotenv()
 NASA_API_KEY = os.getenv("NASA_API_KEY")
+
+HISTORY_FILE = "orbit_history.csv"
 
 
 def get_apod():
@@ -79,6 +84,17 @@ def display_iss(lat, lon, num_astronauts):
     print(Fore.MAGENTA + f"Status: {space_vibe_check(lat, num_astronauts)}\n")
 
 
+def save_to_history(lat, lon, num_astronauts):
+    """Add this check to a CSV file so we can track the ISS's path over time."""
+    file_exists = os.path.isfile(HISTORY_FILE)
+
+    with open(HISTORY_FILE, "a", newline="") as f:
+        writer = csv.writer(f)
+        if not file_exists:
+            writer.writerow(["date", "latitude", "longitude", "astronauts"])
+        writer.writerow([datetime.now().strftime("%Y-%m-%d %H:%M"), lat, lon, num_astronauts])
+
+
 def main():
     if not NASA_API_KEY:
         print(Fore.RED + "No API key found! Add NASA_API_KEY to your .env file.")
@@ -94,6 +110,7 @@ def main():
 
     display_apod(apod_data)
     display_iss(lat, lon, num_astronauts)
+    save_to_history(lat, lon, num_astronauts)
 
 
 if __name__ == "__main__":
