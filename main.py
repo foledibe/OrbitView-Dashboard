@@ -34,6 +34,31 @@ def get_iss_location():
     return lat, lon
 
 
+def get_astronauts():
+    """Get the number of people currently in space."""
+    url = "http://api.open-notify.org/astros.json"
+    response = requests.get(url)
+    response.raise_for_status()
+    data = response.json()
+    return data["number"]
+
+
+def space_vibe_check(lat, num_astronauts):
+    """Turn the ISS's position into a fun one-line status message."""
+    if abs(lat) < 10:
+        location_vibe = "cruising right along the equator"
+    elif lat > 50:
+        location_vibe = "way up near the northern edge of its orbit"
+    elif lat < -50:
+        location_vibe = "swinging down toward the southern edge of its orbit"
+    elif lat > 0:
+        location_vibe = "somewhere over the Northern Hemisphere"
+    else:
+        location_vibe = "somewhere over the Southern Hemisphere"
+
+    return f"🛰️  The ISS is {location_vibe}, carrying {num_astronauts} astronauts right now."
+
+
 def display_apod(data):
     """Print today's astronomy picture info in color."""
     print(Style.BRIGHT + Fore.CYAN + "\n=== OrbitView: Astronomy Picture of the Day ===")
@@ -46,11 +71,12 @@ def display_apod(data):
     print(Fore.WHITE + f"\n{short_explanation}\n")
 
 
-def display_iss(lat, lon):
+def display_iss(lat, lon, num_astronauts):
     """Print the ISS's current position in color."""
     print(Style.BRIGHT + Fore.CYAN + "=== ISS Live Location ===")
     print(Fore.YELLOW + f"Latitude:  {lat:.2f}")
-    print(Fore.YELLOW + f"Longitude: {lon:.2f}\n")
+    print(Fore.YELLOW + f"Longitude: {lon:.2f}")
+    print(Fore.MAGENTA + f"Status: {space_vibe_check(lat, num_astronauts)}\n")
 
 
 def main():
@@ -61,12 +87,13 @@ def main():
     try:
         apod_data = get_apod()
         lat, lon = get_iss_location()
+        num_astronauts = get_astronauts()
     except requests.exceptions.RequestException:
         print(Fore.RED + "Something went wrong reaching the APIs. Check your connection or API key.")
         return
 
     display_apod(apod_data)
-    display_iss(lat, lon)
+    display_iss(lat, lon, num_astronauts)
 
 
 if __name__ == "__main__":
